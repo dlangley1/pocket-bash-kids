@@ -1,30 +1,43 @@
 {
   "expo": {
-    "name": "PocketBashKids",
-    "slug": "PocketBashKids",
+    "name": "Pocket Bash Kids",
+    "slug": "pocket-bash-kids",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1A1A1A"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.discoverpretoriaeast.pocketbashkids",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1A1A1A"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "package": "com.discoverpretoriaeast.pocketbashkids",
+      "versionCode": 1
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "plugins": [
+      "expo-router",
+      "expo-web-browser",
+      "expo-font"
+    ],
+    "scheme": "pocketbashkids",
+    "owner": "discover_pretoria_east",
+    "extra": {
+      "eas": {
+        "projectId": "pocket-bash-kids"
+      }
     }
   }
 }
