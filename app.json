@@ -37,8 +37,18 @@
     "plugins": [
       "expo-router",
       "expo-web-browser",
-      "expo-font"
+      "expo-font",
+      "expo-updates"
     ],
+    "updates": {
+      "url": "https://u.expo.dev/pocket-bash-kids",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "scheme": "pocketbashkids",
     "owner": "discover_pretoria_east",
     "extra": {

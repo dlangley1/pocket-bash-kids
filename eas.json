@@ -2,8 +2,11 @@
   "cli": { "version": ">= 5.0.0" },
   "build": {
     "development": { "developmentClient": true, "distribution": "internal" },
-    "preview": { "distribution": "internal" },
-    "production": {}
+    "preview": { "distribution": "internal", "channel": "preview" },
+    "production": { "channel": "production" }
   },
-  "submit": { "production": {} }
+  "submit": { "production": {} },
+  "update": {
+    "production": { "channel": "production" }
+  }
 }
