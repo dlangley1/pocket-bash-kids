@@ -14,7 +14,8 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "baseUrl": "/app"
     },
     "platforms": ["ios", "android", "web"],
     "assetBundlePatterns": [
