@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, FlatList, TextInput, TouchableOpacity,
-  ActivityIndicator, StyleSheet, Dimensions, Modal, Pressable, Image,
+  ActivityIndicator, StyleSheet, useWindowDimensions, Modal, Pressable, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,6 +23,7 @@ const CHIP_MAP: Record<string, string> = {
 };
 
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const { isSubscribed } = useSubscription();
   const { isFavourite, toggleFavourite } = useFavourites();
@@ -249,7 +250,7 @@ export default function HomeScreen() {
             {CATEGORIES.map(cat => (
               <TouchableOpacity
                 key={cat.name}
-                style={styles.catCard}
+                style={[styles.catCard, { width: (width - 42) / 2 }]}
                 onPress={() => router.push({ pathname: '/(tabs)/listings', params: { category: cat.name } })}
               >
                 <View style={styles.catIcon}>
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
   chipTextActive: { color: colors.white },
   hScroll: { paddingHorizontal: 16, paddingVertical: 12, gap: 13 },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingBottom: 24, gap: 10 },
-  catCard: { width: (Dimensions.get('window').width - 42) / 2, backgroundColor: colors.white, borderRadius: 13, padding: 14, borderWidth: 1, borderColor: colors.border, gap: 8, ...shadow },
+  catCard: { backgroundColor: colors.white, borderRadius: 13, padding: 14, borderWidth: 1, borderColor: colors.border, gap: 8, ...shadow },
   catIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: colors.orangePale, alignItems: 'center', justifyContent: 'center' },
   catName: { fontWeight: '700', fontSize: 13, color: colors.black, lineHeight: 17 },
   catCount: { fontSize: 11, color: colors.muted, fontWeight: '500' },
