@@ -1,19 +1,13 @@
 import { Platform } from 'react-native';
+import Purchases, { PurchasesPackage } from 'react-native-purchases';
 
+const APPLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY || '';
+const GOOGLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY || '';
 const ENTITLEMENT_ID = 'premium';
+
 let initialized = false;
 
-const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
-
-let Purchases: any = null;
-if (isNative) {
-  Purchases = require('react-native-purchases').default;
-}
-
 export function initRevenueCat(): void {
-  if (!isNative || !Purchases) return;
-  const APPLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY || '';
-  const GOOGLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY || '';
   const key = Platform.OS === 'ios' ? APPLE_KEY : GOOGLE_KEY;
   if (key.startsWith('placeholder')) {
     console.log('[RevenueCat] Placeholder key detected — skipping init');
@@ -28,7 +22,7 @@ export function initRevenueCat(): void {
 }
 
 export async function checkSubscription(): Promise<boolean> {
-  if (!isNative || !initialized) return false;
+  if (!initialized) return false;
   try {
     const info = await Purchases.getCustomerInfo();
     return typeof info.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
@@ -38,8 +32,8 @@ export async function checkSubscription(): Promise<boolean> {
   }
 }
 
-export async function getOfferings(): Promise<any[]> {
-  if (!isNative || !initialized) return [];
+export async function getOfferings(): Promise<PurchasesPackage[]> {
+  if (!initialized) return [];
   try {
     const offerings = await Purchases.getOfferings();
     return offerings.current?.availablePackages || [];
@@ -49,8 +43,7 @@ export async function getOfferings(): Promise<any[]> {
   }
 }
 
-export async function purchasePackage(pkg: any): Promise<boolean> {
-  if (!isNative || !initialized) return false;
+export async function purchasePackage(pkg: PurchasesPackage): Promise<boolean> {
   try {
     const { customerInfo } = await Purchases.purchasePackage(pkg);
     return typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
@@ -61,7 +54,7 @@ export async function purchasePackage(pkg: any): Promise<boolean> {
 }
 
 export async function restorePurchases(): Promise<boolean> {
-  if (!isNative || !initialized) return false;
+  if (!initialized) return false;
   try {
     const info = await Purchases.restorePurchases();
     return typeof info.entitlements.active[ENTITLEMENT_ID] !== 'undefined';
