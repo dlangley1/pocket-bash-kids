@@ -46,7 +46,7 @@ function mapRecord(record: any): Business {
     categories: Array.isArray(f['Party Category']) ? f['Party Category'] : (f['Party Category'] ? [f['Party Category']] : []),
     phone: f['Business Contact Number'] || '',
     whatsapp: f['WhatsApp Number'] || '',
-    email: f['Email Address'] || '',
+    email: f['Email'] || f['Email Address'] || '',
     website: f['Website'] || '',
     instagram: f['Instagram Handle'] || '',
     address,

@@ -11,11 +11,9 @@ import { fetchAllBusinesses, Business } from '../../services/airtable';
 import { colors, shadow } from '../../constants/theme';
 import { VerifiedBadge } from '../../components/VerifiedBadge';
 import { SpecialOfferBadge } from '../../components/SpecialOfferBadge';
-import { LockedOverlay } from '../../components/LockedOverlay';
 import { useFavourites } from '../../context/FavouritesContext';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { CATEGORIES } from '../../constants/categories';
-import { restorePurchases } from '../../services/revenuecat';
 
 function getCategoryEmoji(category: string): string {
   return CATEGORIES.find(c => c.name === category)?.emoji || '🎉';
@@ -33,7 +31,7 @@ async function openUrl(url: string) {
 export default function BusinessDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { isSubscribed, refresh } = useSubscription();
+  const { isSubscribed } = useSubscription();
   const { isFavourite, toggleFavourite } = useFavourites();
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,11 +42,6 @@ export default function BusinessDetailScreen() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
-
-  const handleRestore = async () => {
-    const success = await restorePurchases();
-    if (success) { await refresh(); }
-  };
 
   if (loading) {
     return (
@@ -68,8 +61,6 @@ export default function BusinessDetailScreen() {
       </SafeAreaView>
     );
   }
-
-  const fav = isFavourite(business.id);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -137,13 +128,22 @@ export default function BusinessDetailScreen() {
             </View>
           ) : null}
 
-          {/* Phone / Address always visible */}
+          {/* Phone */}
           {business.phone ? (
-            <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`tel:${business.phone}`)}>
-              <Text style={styles.infoIcon}>📞</Text>
-              <Text style={[styles.infoText, styles.link]}>{business.phone}</Text>
-            </TouchableOpacity>
+            business.status !== 'Free' ? (
+              <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`tel:${business.phone}`)}>
+                <Text style={styles.infoIcon}>📞</Text>
+                <Text style={[styles.infoText, styles.link]}>{business.phone}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>📞</Text>
+                <Text style={styles.infoText}>{business.phone}</Text>
+              </View>
+            )
           ) : null}
+
+          {/* Address */}
           {business.address ? (
             business.status !== 'Free' ? (
               <TouchableOpacity
@@ -161,112 +161,121 @@ export default function BusinessDetailScreen() {
             )
           ) : null}
 
-          {/* Free listing locked */}
-          {business.status === 'Free' && (
+          {/* About */}
+          {business.description ? (
             <>
               <View style={styles.divider} />
-              <LockedOverlay
-                onSubscribe={() => router.push('/paywall')}
-                onRestore={handleRestore}
-              />
+              <Text style={styles.sectionLabel}>ABOUT</Text>
+              <Text style={styles.desc}>{business.description}</Text>
             </>
+          ) : null}
+
+          {/* Additional Images */}
+          {business.additionalImages.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.gallery}>
+              {business.additionalImages.map((img, i) => (
+                <Image key={i} source={{ uri: img }} style={styles.thumb} resizeMode="cover" />
+              ))}
+            </ScrollView>
           )}
 
-          {/* Subscribed + Premium/Featured */}
-          {isSubscribed && business.status !== 'Free' && (
-            <>
-              {business.description ? (
-                <>
-                  <View style={styles.divider} />
-                  <Text style={styles.sectionLabel}>ABOUT</Text>
-                  <Text style={styles.desc}>{business.description}</Text>
-                </>
-              ) : null}
-
-              {business.additionalImages.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.gallery}>
-                  {business.additionalImages.map((img, i) => (
-                    <Image key={i} source={{ uri: img }} style={styles.thumb} resizeMode="cover" />
-                  ))}
-                </ScrollView>
-              )}
-
-              <View style={styles.divider} />
-              <Text style={styles.sectionLabel}>CONTACT & INFO</Text>
-
-              {business.whatsapp ? (
-                <TouchableOpacity style={styles.infoRow} onPress={() => openUrl(`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`)}>
-                  <Text style={styles.infoIcon}>💬</Text>
-                  <Text style={[styles.infoText, styles.link]}>WhatsApp</Text>
-                </TouchableOpacity>
-              ) : null}
-
-              {business.status === 'Premium' && business.email ? (
-                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`mailto:${business.email}`)}>
-                  <Text style={styles.infoIcon}>✉️</Text>
-                  <Text style={[styles.infoText, styles.link]}>{business.email}</Text>
-                </TouchableOpacity>
-              ) : null}
-
-              {business.status === 'Premium' && business.website ? (
-                <TouchableOpacity style={styles.infoRow} onPress={() => openUrl(business.website)}>
-                  <Text style={styles.infoIcon}>🌐</Text>
-                  <Text style={[styles.infoText, styles.link]}>{business.website}</Text>
-                </TouchableOpacity>
-              ) : null}
-
-              {business.status === 'Premium' && business.instagram ? (
-                <TouchableOpacity style={styles.infoRow} onPress={() => openUrl(`https://instagram.com/${business.instagram.replace('@', '')}`)}>
-                  <Text style={styles.infoIcon}>📷</Text>
-                  <Text style={[styles.infoText, styles.link]}>@{business.instagram.replace('@', '')}</Text>
-                </TouchableOpacity>
-              ) : null}
-
-              {business.status === 'Premium' && business.packages ? (
-                <>
-                  <View style={styles.divider} />
-                  <Text style={styles.sectionLabel}>PARTY PACKAGES</Text>
-                  <View style={styles.pkgCard}>
-                    <Text style={styles.pkgDesc}>{business.packages}</Text>
-                  </View>
-                </>
-              ) : null}
-            </>
-          )}
-
-          {/* Not subscribed + Premium/Featured */}
-          {!isSubscribed && business.status !== 'Free' && (
-            <>
-              <View style={styles.divider} />
-              <LockedOverlay
-                onSubscribe={() => router.push('/paywall')}
-                onRestore={handleRestore}
-              />
-            </>
-          )}
-
-          {/* CTAs */}
+          {/* Contact & Info */}
           <View style={styles.divider} />
-          <View style={styles.ctaRow}>
-            {business.email ? (
-              <TouchableOpacity
-                style={styles.ctaBtn}
-                onPress={() => Linking.openURL(`mailto:${business.email}`)}
-              >
-                <LinearGradient colors={['#E8751A', '#C5601A']} style={styles.ctaGradient}>
-                  <Text style={styles.ctaText}>📩 Enquire Now</Text>
-                </LinearGradient>
+          <Text style={styles.sectionLabel}>CONTACT & INFO</Text>
+
+          {business.whatsapp ? (
+            business.status !== 'Free' ? (
+              <TouchableOpacity style={styles.infoRow} onPress={() => openUrl(`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`)}>
+                <Text style={styles.infoIcon}>💬</Text>
+                <Text style={[styles.infoText, styles.link]}>WhatsApp</Text>
               </TouchableOpacity>
-            ) : null}
-            {business.phone ? (
-              <TouchableOpacity
-                style={[styles.ctaBtn, styles.ctaOutline]}
-                onPress={() => Linking.openURL(`tel:${business.phone}`)}
-              >
-                <Text style={styles.ctaOutlineText}>📞 Call {business.name}</Text>
+            ) : (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>💬</Text>
+                <Text style={styles.infoText}>{business.whatsapp}</Text>
+              </View>
+            )
+          ) : null}
+
+          {business.email ? (
+            business.status !== 'Free' ? (
+              <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`mailto:${business.email}`)}>
+                <Text style={styles.infoIcon}>✉️</Text>
+                <Text style={[styles.infoText, styles.link]}>{business.email}</Text>
               </TouchableOpacity>
-            ) : null}
-          </View>
+            ) : (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>✉️</Text>
+                <Text style={styles.infoText}>{business.email}</Text>
+              </View>
+            )
+          ) : null}
+
+          {business.website ? (
+            business.status !== 'Free' ? (
+              <TouchableOpacity style={styles.infoRow} onPress={() => openUrl(business.website)}>
+                <Text style={styles.infoIcon}>🌐</Text>
+                <Text style={[styles.infoText, styles.link]}>{business.website}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>🌐</Text>
+                <Text style={styles.infoText}>{business.website}</Text>
+              </View>
+            )
+          ) : null}
+
+          {business.instagram ? (
+            business.status !== 'Free' ? (
+              <TouchableOpacity style={styles.infoRow} onPress={() => openUrl(`https://instagram.com/${business.instagram.replace('@', '')}`)}>
+                <Text style={styles.infoIcon}>📷</Text>
+                <Text style={[styles.infoText, styles.link]}>@{business.instagram.replace('@', '')}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoIcon}>📷</Text>
+                <Text style={styles.infoText}>@{business.instagram.replace('@', '')}</Text>
+              </View>
+            )
+          ) : null}
+
+          {/* Party Packages */}
+          {business.packages ? (
+            <>
+              <View style={styles.divider} />
+              <Text style={styles.sectionLabel}>PARTY PACKAGES</Text>
+              <View style={styles.pkgCard}>
+                <Text style={styles.pkgDesc}>{business.packages}</Text>
+              </View>
+            </>
+          ) : null}
+
+          {/* CTAs — only for Featured and Premium */}
+          {business.status !== 'Free' && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.ctaRow}>
+                {business.email ? (
+                  <TouchableOpacity
+                    style={styles.ctaBtn}
+                    onPress={() => Linking.openURL(`mailto:${business.email}`)}
+                  >
+                    <LinearGradient colors={['#E8751A', '#C5601A']} style={styles.ctaGradient}>
+                      <Text style={styles.ctaText}>📩 Enquire Now</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ) : null}
+                {business.phone ? (
+                  <TouchableOpacity
+                    style={[styles.ctaBtn, styles.ctaOutline]}
+                    onPress={() => Linking.openURL(`tel:${business.phone}`)}
+                  >
+                    <Text style={styles.ctaOutlineText}>📞 Call {business.name}</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
     </View>
